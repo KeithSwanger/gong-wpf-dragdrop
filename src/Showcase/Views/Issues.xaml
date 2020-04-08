@@ -20,7 +20,7 @@
             <Style BasedOn="{StaticResource DefaultTreeViewStyle}" TargetType="{x:Type TreeView}" />
         </Grid.Resources>
 
-        <TabControl Style="{StaticResource ShowcaseTabControlStyle}">
+        <TabControl Style="{StaticResource ShowcaseTabControlStyle}" dd:DragDrop.IsDropTarget="True">
             <TabItem Header="#123">
                 <TabItem.Resources>
                     <DataTemplate x:Key="FlowDocDataTemplate">
@@ -54,7 +54,10 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <ListBox x:Name="LeftIssue123ListBox"
+                                         Background = "Transparent"
                                          Grid.Column="0"
+                                         FontSize="24"
+                                         dd:DragDrop.InitialScrollDelay="250"
                                          dd:DragDrop.IsDragSource="True"
                                          dd:DragDrop.IsDropTarget="True"
                                          dd:DragDrop.UseDefaultDragAdorner="False"

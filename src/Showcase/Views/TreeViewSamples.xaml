@@ -37,8 +37,11 @@
                                 </Grid.ColumnDefinitions>
                                 <TreeView x:Name="LeftBoundTreeView"
                                           Grid.Column="0"
+                                          dd:DragDrop.InitialScrollDelay="250"
+                                          dd:DragDrop.ScrollTickDelay="40"
                                           dd:DragDrop.IsDragSource="True"
                                           dd:DragDrop.IsDropTarget="True"
+                                          dd:DragDrop.DropTargetAdornerBrush="Coral"
                                           dd:DragDrop.UseDefaultDragAdorner="True"
                                           dd:DragDrop.UseDefaultEffectDataTemplate="True"
                                           dd:DragDrop.SelectDroppedItems="True"
@@ -47,7 +50,7 @@
                                           ItemsSource="{Binding Data.TreeCollection1}">
                                     <TreeView.ItemTemplate>
                                         <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                            <TextBlock Margin="2" Text="{Binding Caption}" />
+                                            <TextBlock Margin="2" Text="{Binding Caption}" Width="500"/>
                                         </HierarchicalDataTemplate>
                                     </TreeView.ItemTemplate>
                                 </TreeView>

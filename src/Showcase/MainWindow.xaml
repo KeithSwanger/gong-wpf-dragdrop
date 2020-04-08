@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:Showcase.WPF.DragDrop.ViewModels"
         xmlns:views="clr-namespace:Showcase.WPF.DragDrop.Views"
+        xmlns:dd="urn:gong-wpf-dragdrop"
         Title="GongSolutions.WPF.DragDrop"
         Width="900"
         Height="600"
@@ -13,8 +14,8 @@
         mc:Ignorable="d">
 
     <Grid>
-
-        <TabControl x:Name="MainTabControl" Style="{StaticResource ShowcaseTabControlStyle}">
+        <UserControl>
+            <TabControl x:Name="MainTabControl" Style="{StaticResource ShowcaseTabControlStyle}" dd:DragDrop.IsDropTarget="True">
             <TabItem Header="ListBox">
                 <views:ListBoxSamples />
             </TabItem>
@@ -37,6 +38,7 @@
                 <views:Issues />
             </TabItem>
         </TabControl>
+        </UserControl>
 
     </Grid>
 
