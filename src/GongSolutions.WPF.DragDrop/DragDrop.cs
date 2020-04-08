@@ -10,10 +10,30 @@ using System.Windows.Media.Imaging;
 using GongSolutions.Wpf.DragDrop.Icons;
 using GongSolutions.Wpf.DragDrop.Utilities;
 
+using System.Net;
+using System.Timers;
+using System.Diagnostics;
+
 namespace GongSolutions.Wpf.DragDrop
 {
     public static partial class DragDrop
     {
+        private static bool _wasInScrollArea = false;
+        private static bool _isInScrollArea = false;
+        private static bool _initialScrollDelayElapsed = false;
+        private static readonly Timer _initialScrollDelayTimer = new Timer();
+
+
+        private static bool _canScroll = true;
+        private static readonly Timer _canScrollDelayTimer = new Timer();
+
+        static DragDrop()
+        {
+            _initialScrollDelayTimer.Elapsed += (sender, args) => { _initialScrollDelayElapsed = true; _initialScrollDelayTimer.Stop(); };
+            _canScrollDelayTimer.Elapsed += (sender, args) => _canScroll = true;
+        }
+
+
         private static void CreateDragAdorner(DropInfo dropInfo)
         {
             var dragInfo = dropInfo.DragInfo;
@@ -202,11 +222,40 @@ namespace GongSolutions.Wpf.DragDrop
             return new DataTemplate { VisualTree = borderFactory };
         }
 
+
+        
+        
+
         private static void Scroll(DropInfo dropInfo, DragEventArgs e)
         {
-            if (dropInfo == null || dropInfo.TargetScrollViewer == null)
+            //Debug.WriteLine("scroll: " + dropInfo.TargetCollection?.ToString());
+
+            if (dropInfo == null || dropInfo.TargetCollection == null || dropInfo.TargetScrollViewer == null)
             {
+                _wasInScrollArea = false;
+                _initialScrollDelayElapsed = false;
+                _initialScrollDelayTimer.Stop();
+
                 return;
+            }
+
+            static void CheckInitialDelay()
+            {
+                _isInScrollArea = true;
+                if (!_wasInScrollArea)
+                {
+                    _wasInScrollArea = true;
+
+                    if (GetInitialScrollDelay(m_DragInfo.VisualSource) == 0)
+                    {
+                        _initialScrollDelayElapsed = true;
+                    }
+                    else
+                    {
+                        _initialScrollDelayTimer.Interval = GetInitialScrollDelay(m_DragInfo.VisualSource);
+                        _initialScrollDelayTimer.Start();
+                    }
+                }
             }
 
             var scrollViewer = dropInfo.TargetScrollViewer;
@@ -215,15 +264,27 @@ namespace GongSolutions.Wpf.DragDrop
             var position = e.GetPosition(scrollViewer);
             var scrollMargin = Math.Min(scrollViewer.FontSize * 2, scrollViewer.ActualHeight / 2);
 
+            _isInScrollArea = false;
+
             if (scrollingMode == ScrollingMode.Both || scrollingMode == ScrollingMode.HorizontalOnly)
             {
                 if (position.X >= scrollViewer.ActualWidth - scrollMargin && scrollViewer.HorizontalOffset < scrollViewer.ExtentWidth - scrollViewer.ViewportWidth)
                 {
-                    scrollViewer.LineRight();
+                    CheckInitialDelay();
+
+                    if (_initialScrollDelayElapsed)
+                    {
+                        scrollViewer.LineRight();
+                    }
                 }
                 else if (position.X < scrollMargin && scrollViewer.HorizontalOffset > 0)
                 {
-                    scrollViewer.LineLeft();
+                    CheckInitialDelay();
+
+                    if (_initialScrollDelayElapsed)
+                    {
+                        scrollViewer.LineLeft();
+                    }
                 }
             }
 
@@ -231,12 +292,29 @@ namespace GongSolutions.Wpf.DragDrop
             {
                 if (position.Y >= scrollViewer.ActualHeight - scrollMargin && scrollViewer.VerticalOffset < scrollViewer.ExtentHeight - scrollViewer.ViewportHeight)
                 {
-                    scrollViewer.LineDown();
+                    CheckInitialDelay();
+
+                    if (_initialScrollDelayElapsed)
+                    {
+                        scrollViewer.LineDown();
+                    }
                 }
                 else if (position.Y < scrollMargin && scrollViewer.VerticalOffset > 0)
                 {
-                    scrollViewer.LineUp();
+                    CheckInitialDelay();
+
+                    if (_initialScrollDelayElapsed)
+                    {
+                        scrollViewer.LineUp();
+                    }
                 }
+            }
+
+            if (!_isInScrollArea)
+            {
+                _wasInScrollArea = false;
+                _initialScrollDelayElapsed = false;
+                _initialScrollDelayTimer.Stop();
             }
         }
 
@@ -390,6 +468,7 @@ namespace GongSolutions.Wpf.DragDrop
 
         private static void DragSourceOnMouseMove(object sender, MouseEventArgs e)
         {
+
             var dragInfo = m_DragInfo;
             if (dragInfo != null && !m_DragInProgress)
             {
@@ -479,6 +558,7 @@ namespace GongSolutions.Wpf.DragDrop
                 DropTargetAdorner = null;
                 Mouse.OverrideCursor = null;
             }
+
         }
 
         private static void DropTargetOnDragEnter(object sender, DragEventArgs e)
@@ -490,6 +570,7 @@ namespace GongSolutions.Wpf.DragDrop
         {
             DropTargetOnDragOver(sender, e, EventType.Tunneled);
         }
+
 
         private static void DropTargetOnDragLeave(object sender, DragEventArgs e)
         {
@@ -526,7 +607,24 @@ namespace GongSolutions.Wpf.DragDrop
 
             DragAdorner?.Move(e.GetPosition(DragAdorner.AdornedElement), dragInfo != null ? GetDragMouseAnchorPoint(dragInfo.VisualSource) : default(Point), ref _adornerMousePosition, ref _adornerSize);
 
-            Scroll(dropInfo, e);
+
+            if (_canScroll)
+            {
+                _canScroll = false;
+                Scroll(dropInfo, e);
+                var interval = GetScrollTickDelay(m_DragInfo.VisualSource);
+                if (interval > 0)
+                {
+                    _canScrollDelayTimer.Interval = interval;
+                    _canScrollDelayTimer.Start();
+                }
+                else
+                {
+                    _canScroll = true;
+                }
+
+            }
+
 
             if (HitTestUtilities.HitTest4Type<ScrollBar>(sender, elementPosition)
                 || HitTestUtilities.HitTest4GridViewColumnHeader(sender, elementPosition)

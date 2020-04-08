@@ -4,10 +4,51 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
+using System.Net;
+using System.Timers;
+using System.Collections.Generic;
+
 namespace GongSolutions.Wpf.DragDrop
 {
     public static partial class DragDrop
     {
+        /// <summary>
+        /// Amount of time (in milliseconds) that a drag source must hover a scroll area before scrolling starts.
+        /// </summary>
+        public static readonly DependencyProperty InitialScrollDelayProperty = DependencyProperty.RegisterAttached(
+          "InitialScrollDelay", typeof(double), typeof(DragDrop), new PropertyMetadata(default(double)));
+
+        public static void SetInitialScrollDelay(DependencyObject element, double value)
+        {
+            element.SetValue(InitialScrollDelayProperty, value);
+        }
+
+        public static double GetInitialScrollDelay(DependencyObject element)
+        {
+            return (double)element.GetValue(InitialScrollDelayProperty);
+        }
+
+
+        /// <summary>
+        /// The amount of time (in milliseconds) between scroll ticks
+        /// </summary>
+        public static readonly DependencyProperty ScrollTickDelayProperty = DependencyProperty.RegisterAttached(
+          "ScrollTickDelay", typeof(double), typeof(DragDrop), new PropertyMetadata(default(double)));
+
+        public static void SetScrollTickDelay(DependencyObject element, double value)
+        {
+            element.SetValue(ScrollTickDelayProperty, value);
+        }
+
+        public static double GetScrollTickDelay(DependencyObject element)
+        {
+            return (double)element.GetValue(ScrollTickDelayProperty);
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
         /// <summary>
         /// The default data format which will be used for the drag and drop actions.
         /// </summary>
@@ -166,7 +207,7 @@ namespace GongSolutions.Wpf.DragDrop
             switch (eventType)
             {
                 case EventType.Auto:
-                    if (uiElement is ItemsControl)
+                    if (uiElement is ItemsControl || uiElement is Border) // Added Border here so background dragdrop fires correctly, necessary for initialscrolldelay to work correctly
                     {
                         // use normal events for ItemsControls
                         uiElement.DragEnter += DropTargetOnDragEnter;
