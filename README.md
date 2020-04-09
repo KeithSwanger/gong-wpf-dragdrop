@@ -1,7 +1,7 @@
 ## What this fork does
 This fork adds two dependency properties to improve scrolling functionality.
 
-The first property, `DragDrop.InitialScrollDelay` requires you to drag a dragsource to the top or bottom of a scrollviewer and hold it there for a given amount of time (in milliseconds). A good base value for this property is “100”.
+The first property, `DragDrop.InitialScrollDelay` requires you to drag a dragsource to the top or bottom of a scrollviewer and hold it there for a given amount of time (in milliseconds) before the scrollviewer starts scrolling. A good base value for this property is “100”.
 
 In order to function properly, `DragDrop.InitialScrollDelay` requires a parent Border element to have a `DragDrop.IsDropTarget` property set to True. This Border can have a thickness of 0 and a transparent background and still work. I usually place this (`DragDrop.IsDropTarget=”True”`) on a Border that houses the entire application.
 
